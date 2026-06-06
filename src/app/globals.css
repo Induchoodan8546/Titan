@@ -1,0 +1,131 @@
+@import "tailwindcss";
+
+@theme {
+  --font-cinzel: var(--font-cinzel), serif;
+  --font-sans: var(--font-inter), sans-serif;
+  
+  --color-gold-50: #fbf8eb;
+  --color-gold-100: #f4ecce;
+  --color-gold-200: #e8d79c;
+  --color-gold-300: #dbbf64;
+  --color-gold-400: #d4af37; /* Primary Luxury Gold */
+  --color-gold-500: #b8912b;
+  --color-gold-600: #937020;
+  --color-gold-700: #6f5118;
+  --color-gold-800: #4c3611;
+  --color-gold-900: #291c09;
+
+  --color-bronze-50: #faf7f2;
+  --color-bronze-500: #a8896c;
+  --color-bronze-900: #3b2c20;
+
+  --color-luxury-black: #050505;
+  --color-luxury-dark: #0f0f0f;
+  --color-luxury-gray: #1a1a1a;
+  
+  --animate-fade-in-up: fadeInUp 1s cubic-bezier(0.215, 0.61, 0.355, 1) forwards;
+  --animate-shine: shine 1.5s ease-in-out infinite;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shine {
+  0% {
+    left: -100%;
+  }
+  50% {
+    left: 100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+:root {
+  --background: #050505;
+  --foreground: #f4ecce;
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), sans-serif;
+  overflow-x: hidden;
+}
+
+/* Premium Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a2212;
+  border-radius: 3px;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #d4af37;
+}
+
+/* Luxury Utilities */
+.text-luxury-gradient {
+  background: linear-gradient(135deg, #ffffff 30%, #e8d79c 70%, #d4af37 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gold-gradient {
+  background: linear-gradient(135deg, #f4ecce 0%, #d4af37 50%, #937020 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-glass {
+  background: rgba(15, 15, 15, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+.bg-glass-heavy {
+  background: rgba(10, 10, 10, 0.9);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+.border-gold-glow {
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.1), inset 0 0 15px rgba(212, 175, 55, 0.05);
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.border-gold-glow:hover {
+  box-shadow: 0 0 25px rgba(212, 175, 55, 0.25), inset 0 0 20px rgba(212, 175, 55, 0.1);
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+.text-spacing-wide {
+  letter-spacing: 0.25em;
+}
+
+/* Page wrapper for ScrollTrigger pinning */
+#scroll-container {
+  position: relative;
+  width: 100%;
+  z-index: 10;
+}
+
