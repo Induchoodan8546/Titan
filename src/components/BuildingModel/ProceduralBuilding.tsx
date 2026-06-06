@@ -20,7 +20,7 @@ export default function ProceduralBuilding({ scrollProgress = 0 }: ProceduralBui
   const BUILDING_WIDTH = 3.2;
   const BUILDING_DEPTH = 3.2;
 
-  // Animate the building's rotation, elevators, and searchlights
+  // Animate the building's rotation, elevators, searchlights, and scanner sleeve
   useFrame((state) => {
     const elapsed = state.clock.getElapsedTime();
 
@@ -46,6 +46,7 @@ export default function ProceduralBuilding({ scrollProgress = 0 }: ProceduralBui
       searchlight2Ref.current.target.position.z = Math.cos(elapsed * 0.5 + Math.PI) * 12;
       searchlight2Ref.current.target.position.y = 20;
     }
+
   });
 
   // Generate windows with random states (on/off)
@@ -354,7 +355,6 @@ export default function ProceduralBuilding({ scrollProgress = 0 }: ProceduralBui
             penumbra={0.6}
             castShadow
           />
-          <primitive object={new THREE.Object3D()} attach="target" />
         </group>
       </group>
     </group>
