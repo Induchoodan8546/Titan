@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useMemo } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useRef, useMemo, useEffect } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 
 interface FloorplanModel3DProps {
@@ -10,19 +10,55 @@ interface FloorplanModel3DProps {
   setActiveRoomIdx: (idx: number) => void;
 }
 
+const ROOM_COORDINATES: Record<number, [number, number, number][]> = {
+  0: [
+    [-1.2, 0.3, -1.2], // Lift Foyer
+    [-1.3, 0.2, 0.5],  // Kitchen
+    [0.6, 0.2, -0.6],  // Living Hall
+    [0, 0.1, 1.6],     // Balcony
+  ],
+  1: [
+    [-1.4, 0.1, -1.4], // Entry
+    [-1.0, 0.15, 1.0], // Plunge Pool
+    [1.1, 0.2, -0.6],  // Salon
+    [1.2, 0.2, 1.2],   // Master Bed
+  ],
+  2: [
+    [0, 0.25, 0],       // Observation Dome
+    [-1.2, 0.1, 0],     // Butler
+    [1.1, 0.15, -1.1],  // Sky Spa Jacuzzi
+    [0, 0.1, 1.4],      // Sky Garden
+  ],
+};
+
 export default function FloorplanModel3D({
   activeResidence,
   activeRoomIdx,
   setActiveRoomIdx,
 }: FloorplanModel3DProps) {
   const modelRef = useRef<THREE.Group>(null);
+  const { controls } = useThree();
+  const targetLook = useRef(new THREE.Vector3(0, 0, 0));
 
-  // Slow idle rotation of the model
-  useFrame((state) => {
-    const elapsed = state.clock.getElapsedTime();
-    if (modelRef.current) {
-      // Very gentle rotation
-      modelRef.current.rotation.y = elapsed * 0.04;
+  // Reset target look-at coordinates when room or residence changes
+  useEffect(() => {
+    const coords = ROOM_COORDINATES[activeResidence]?.[activeRoomIdx] || [0, 0, 0];
+    targetLook.current.set(coords[0], coords[1], coords[2]);
+  }, [activeResidence, activeRoomIdx]);
+
+  useFrame(() => {
+    if (controls) {
+      const orbitControls = controls as any;
+      if (orbitControls.target) {
+        const dist = orbitControls.target.distanceTo(targetLook.current);
+        if (dist > 0.005) {
+          // Smoothly pan OrbitControls target to focus on the active room
+          orbitControls.target.lerp(targetLook.current, 0.08);
+        } else if (dist > 0) {
+          // Snap directly to prevent sub-pixel float precision camera vibration
+          orbitControls.target.copy(targetLook.current);
+        }
+      }
     }
   });
 
@@ -85,12 +121,9 @@ export default function FloorplanModel3D({
 
   return (
     <group ref={modelRef}>
-      {/* Lights inside the local modal canvas - Optimized for a bright, studio architectural model render */}
+      {/* Lights inside the local modal canvas - Simplified for clean, high-contrast readability */}
       <ambientLight intensity={1.8} color="#ffffff" />
-      <hemisphereLight color="#ffffff" groundColor="#1e1b4b" intensity={1.6} />
-      <directionalLight position={[8, 12, 6]} intensity={3.5} castShadow shadow-mapSize={[2048, 2048]} />
-      <pointLight position={[-6, 6, -6]} intensity={2.5} color="#818cf8" />
-      <pointLight position={[6, 4, 6]} intensity={2.0} color="#fff1f2" />
+      <directionalLight position={[6, 10, 4]} intensity={2.5} castShadow shadow-mapSize={[1024, 1024]} />
       
       {/* 1. FLOOR PLAN BASES & WALL LAYOUTS */}
       {activeResidence === 0 && (
@@ -103,14 +136,6 @@ export default function FloorplanModel3D({
             <boxGeometry args={[4.2, 0.15, 4.2]} />
             <primitive object={floorMaterial} attach="material" />
           </mesh>
-          {/* Active room floor glow */}
-          {activeRoomIdx === 2 && (
-            <mesh position={[1.0, 0.08, -0.5]}>
-              <boxGeometry args={[2.0, 0.01, 3.0]} />
-              <meshBasicMaterial color="#d4af37" transparent opacity={0.15} />
-            </mesh>
-          )}
-
           {/* Outer Glass Walls */}
           <mesh position={[0, 0.4, -2.05]} castShadow>
             <boxGeometry args={[4.2, 0.8, 0.04]} />
@@ -287,13 +312,13 @@ export default function FloorplanModel3D({
               <primitive object={woodFurnitureMaterial} attach="material" />
             </mesh>
             {/* Mattress */}
-            <mesh position={[0, 0.1, 0.1]}>
+            <mesh position={[0, 0.1, 0.08]}>
               <boxGeometry args={[1.1, 0.2, 1.0]} />
               <meshStandardMaterial color="#ffffff" roughness={0.9} />
             </mesh>
             {/* Pillows */}
             {[-0.3, 0.3].map((x, i) => (
-              <mesh key={i} position={[x, 0.22, 0.4]}>
+              <mesh key={i} position={[x, 0.22, 0.38]}>
                 <boxGeometry args={[0.35, 0.08, 0.25]} />
                 <meshStandardMaterial color="#f4f4f5" />
               </mesh>
@@ -345,16 +370,22 @@ export default function FloorplanModel3D({
             <primitive object={glassWallMaterial} attach="material" />
           </mesh>
 
-          {/* Helipad circular portal pad */}
+          {/* Sky Spa Glass Jacuzzi (replacing Helipad) */}
           <group position={[1.1, 0.1, -1.1]}>
+            {/* Circular tub base */}
             <mesh castShadow>
-              <cylinderGeometry args={[0.7, 0.7, 0.05, 24]} />
-              <meshStandardMaterial color="#27272a" roughness={0.7} />
+              <cylinderGeometry args={[0.7, 0.7, 0.2, 24]} />
+              <meshStandardMaterial color="#1f2937" roughness={0.8} />
             </mesh>
-            {/* Painted 'H' letter */}
-            <mesh position={[0, 0.03, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-              <planeGeometry args={[0.3, 0.3]} />
-              <meshBasicMaterial color="#d4af37" />
+            {/* Glowing gold rim */}
+            <mesh position={[0, 0.1, 0]}>
+              <ringGeometry args={[0.62, 0.68, 24]} />
+              <primitive object={goldAccentMaterial} attach="material" />
+            </mesh>
+            {/* Luminous spa water cylinder */}
+            <mesh position={[0, 0.08, 0]}>
+              <cylinderGeometry args={[0.6, 0.6, 0.05, 24]} />
+              <primitive object={poolWaterMaterial} attach="material" />
             </mesh>
           </group>
 
@@ -409,68 +440,37 @@ export default function FloorplanModel3D({
         </group>
       )}
 
-      {/* 2. INTERACTIVE ROOM HOTSPOTS IN 3D */}
-      {(() => {
-        // Hotspot coordinates matching residence tabs
-        const hotspots: { idx: number; pos: [number, number, number] }[][] = [
-          // Sky Mansions hotspots
-          [
-            { idx: 0, pos: [-1.2, 0.3, -1.2] }, // Lift Foyer
-            { idx: 1, pos: [-1.3, 0.2, 0.5] },  // Kitchen
-            { idx: 2, pos: [0.6, 0.2, -0.6] },  // Living Hall
-            { idx: 3, pos: [0, 0.1, 1.6] },     // Balcony
-          ],
-          // Duplex hotspots
-          [
-            { idx: 0, pos: [-1.4, 0.1, -1.4] }, // Entry
-            { idx: 1, pos: [-1.0, 0.15, 1.0] }, // Plunge Pool
-            { idx: 2, pos: [1.1, 0.2, -0.6] },  // Salon
-            { idx: 3, pos: [1.2, 0.2, 1.2] },   // Master Bed
-          ],
-          // Crown hotspots
-          [
-            { idx: 0, pos: [0, 0.25, 0] },       // Observation Dome
-            { idx: 1, pos: [-1.2, 0.1, 0] },     // Butler
-            { idx: 2, pos: [1.1, 0.15, -1.1] },  // Helipad
-            { idx: 3, pos: [0, 0.1, 1.4] },      // Sky Garden
-          ],
-        ];
+      {/* 2. IMPLICIT ROOM HIGHLIGHT LIGHTS */}
+      {ROOM_COORDINATES[activeResidence]?.map((coords, idx) => {
+        const isActive = activeRoomIdx === idx;
+        const [x, , z] = coords;
+        return (
+          <group key={idx} position={[x, 0, z]}>
+            {/* Glowing gold floor ring indicator */}
+            <mesh position={[0, -0.115, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+              <ringGeometry args={[0, 0.45, 32]} />
+              <meshBasicMaterial
+                color="#eab308"
+                transparent
+                opacity={isActive ? 0.35 : 0.05}
+                depthWrite={false}
+              />
+            </mesh>
+            {/* Local warm pointLight that turns on implicitly only when active */}
+            {isActive && (
+              <pointLight
+                position={[0, 0.5, 0]}
+                intensity={4.0}
+                distance={2.0}
+                decay={1.5}
+                color="#fef08a"
+                castShadow
+              />
+            )}
+          </group>
+        );
+      })}
 
-        const activeSet = hotspots[activeResidence] || [];
-
-        return activeSet.map((hs) => {
-          const isActive = activeRoomIdx === hs.idx;
-
-          return (
-            <group key={hs.idx} position={hs.pos}>
-              {/* Pulsing Hotspot Click Target */}
-              <mesh
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setActiveRoomIdx(hs.idx);
-                }}
-              >
-                <sphereGeometry args={[0.18, 16, 16]} />
-                <meshStandardMaterial
-                  color={isActive ? "#ffffff" : "#d4af37"}
-                  emissive={isActive ? "#ffba08" : "#937020"}
-                  emissiveIntensity={isActive ? 4.0 : 1.2}
-                />
-              </mesh>
-
-              {/* Halo Scanner ring */}
-              <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.05, 0]}>
-                <ringGeometry args={[0.26, 0.3, 16]} />
-                <meshBasicMaterial
-                  color={isActive ? "#ffba08" : "#d4af37"}
-                  transparent
-                  opacity={isActive ? 0.9 : 0.35}
-                />
-              </mesh>
-            </group>
-          );
-        });
-      })()}
     </group>
   );
 }

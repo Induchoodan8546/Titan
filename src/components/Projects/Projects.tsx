@@ -83,7 +83,7 @@ export default function Projects() {
       rooms: [
         { name: "Observation Dome", desc: "Circular dining room at the building's apex, encased in customized smart glass paneling.", image: "/images/titan_crown_interior.png" },
         { name: "Butler VIP Foyer", desc: "A secondary service entryway for private staff, chefs, and secure coordinates." },
-        { name: "Rooftop Helipad Portal", desc: "Direct private boarding bridge leading to the tower's heated aviation helipad." },
+        { name: "Sky Spa Jacuzzi", desc: "A heated infinity-edge glass jacuzzi offering breathtaking views of the horizon." },
         { name: "Sky Garden Oasis", desc: "High-altitude private garden oasis with local flora and robust structural windbreaks." }
       ]
     }
